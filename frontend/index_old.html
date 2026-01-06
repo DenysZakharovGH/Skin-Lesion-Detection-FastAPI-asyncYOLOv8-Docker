@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Skin Lesion AI Analysis</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  background: #f4f6f9;
+  color: #222;
+}
+
+header {
+  text-align: center;
+  padding: 20px;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 1.8rem;
+}
+
+header p {
+  margin-top: 6px;
+  font-size: 0.95rem;
+  color: #555;
+}
+
+.container {
+  max-width: 480px;
+  margin: 0 auto 40px;
+  padding: 18px;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+select, input[type="file"], button {
+  width: 100%;
+  margin-bottom: 14px;
+  padding: 14px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+}
+
+button {
+  background: #2563eb;
+  color: #fff;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+}
+
+button:hover { background: #1d4ed8; }
+
+#annotatedImage {
+  width: 100%;
+  margin-top: 16px;
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+#detections {
+  margin-top: 24px;
+}
+
+#detections h3 {
+  margin-bottom: 12px;
+}
+
+.detection {
+  background: #f9fafb;
+  padding: 16px;
+  border-radius: 14px;
+  margin-bottom: 14px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.label {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.bar-container {
+  height: 12px;
+  background: #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.bar {
+  height: 100%;
+}
+
+.explanation {
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: #333;
+}
+
+.description {
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: #555;
+}
+
+.disclaimer {
+  margin-top: 30px;
+  font-size: 0.75rem;
+  color: #777;
+  text-align: center;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>Skin Lesion AI Analysis</h1>
+  <p>Automated image-based dermatological assessment</p>
+</header>
+
+<div class="container">
+
+  <select id="langSelect">
+    <option value="en">English</option>
+    <option value="de">Deutsch</option>
+    <option value="uk">Українська</option>
+  </select>
+
+  <input type="file" id="imageInput" accept="image/*">
+  <button id="predictBtn">Analyze Image</button>
+
+  <img id="annotatedImage" src="" alt="">
+
+  <div id="detections">
+    <h3>Detections</h3>
+    <div id="detectionList"></div>
+  </div>
+
+  <div class="disclaimer">
+    ⚠️ This system is for research and educational purposes only and does not replace professional medical diagnosis.
+  </div>
+
+</div>
+
+<script>
+const API_URL = "http://192.168.2.95:8000/predict";
+
+const COLORS = {
+  MEL:"#dc2626", BCC:"#f97316", AKIEC:"#f59e0b",
+  BKL:"#84cc16", DF:"#22c55e", NV:"#16a34a", VASC:"#0ea5e9"
+};
+
+const CLASS_INFO = {
+  "MEL": {"type":{"en":"Malignant","de":"Bösartig","uk":"Злоякісна"},"danger":{"en":"High – needs medical attention","de":"Hoch – ärztliche Untersuchung empfohlen","uk":"Високий – потрібна медична консультація"},"advice":{"en":"Please consult a dermatologist immediately.","de":"Bitte sofort einen Hautarzt aufsuchen.","uk":"Негайно зверніться до дерматолога."},"desc":{"en":"Melanoma – dangerous skin cancer","de":"Melanom – gefährlicher Hautkrebs","uk":"Меланома – небезпечний рак шкіри"}},
+  "AKIEC":{"type":{"en":"Pre-cancerous","de":"Präkanzerös","uk":"Передракова"},"danger":{"en":"Medium – monitor closely","de":"Mittel – engmaschig überwachen","uk":"Середній – слід уважно спостерігати"},"advice":{"en":"Consult a dermatologist for evaluation.","de":"Zur Untersuchung einen Hautarzt konsultieren.","uk":"Консультація дерматолога рекомендована."},"desc":{"en":"Actinic keratosis – pre-cancerous lesion","de":"Aktinische Keratose – präkanzeröse Läsion","uk":"Актиничний кератоз – передракова ураження"}},
+  "BCC":{"type":{"en":"Malignant","de":"Bösartig","uk":"Злоякісна"},"danger":{"en":"Moderate – usually slow growing","de":"Mäßig – wächst meist langsam","uk":"Середній – зазвичай росте повільно"},"advice":{"en":"Consult dermatologist for treatment options.","de":"Hautarzt für Behandlungsmöglichkeiten konsultieren.","uk":"Зверніться до дерматолога для лікування."},"desc":{"en":"Basal cell carcinoma – common skin cancer","de":"Basalzellkarzinom – häufiger Hautkrebs","uk":"Базальноклітинна карцинома – поширений рак шкіри"}},
+  "BKL":{"type":{"en":"Benign","de":"Gutartig","uk":"Доброякісна"},"danger":{"en":"Low – harmless","de":"Gering – ungefährlich","uk":"Низький – нешкідливе"},"advice":{"en":"No special attention needed.","de":"Keine besondere Aufmerksamkeit erforderlich.","uk":"Спеціальної уваги не потребує"},"desc":{"en":"Benign keratosis – harmless lesion","de":"Gutartige Keratose – ungefährliche Läsion","uk":"Доброякісна кератоз – нешкідливе ураження"}},
+  "DF":{"type":{"en":"Benign","de":"Gutartig","uk":"Доброякісна"},"danger":{"en":"Low – harmless","de":"Gering – ungefährlich","uk":"Низький – нешкідливе"},"advice":{"en":"Usually no treatment needed.","de":"In der Regel keine Behandlung erforderlich.","uk":"Зазвичай лікування не потрібне"},"desc":{"en":"Dermatofibroma – benign skin tumor","de":"Dermatofibrom – gutartiger Hauttumor","uk":"Дерматофіброма – доброякісна пухлина шкіри"}},
+  "NV":{"type":{"en":"Benign","de":"Gutartig","uk":"Доброякісна"},"danger":{"en":"Low – harmless","de":"Gering – ungefährlich","uk":"Низький – нешкідливе"},"advice":{"en":"Monitor for changes, usually safe.","de":"Auf Veränderungen achten, in der Regel sicher.","uk":"Слідкуйте за змінами, зазвичай безпечна"},"desc":{"en":"Melanocytic nevus – mole","de":"Melanozytischer Nävus – Muttermal","uk":"Меланоцитарний невус – родимка"}},
+  "VASC":{"type":{"en":"Benign","de":"Gutartig","uk":"Доброякісна"},"danger":{"en":"Low – harmless","de":"Gering – ungefährlich","uk":"Низький – нешкідливе"},"advice":{"en":"No special attention needed.","de":"Keine besondere Aufmerksamkeit erforderlich.","uk":"Спеціальної уваги не потребує"},"desc":{"en":"Vascular lesion (angiomas, pyogenic granulomas, etc.)","de":"Gefäßläsion (Angiome, pyogene Granulome usw.)","uk":"Судинне ураження (ангіоми, піогенний гранульом тощо)"}}
+};
+
+document.getElementById("predictBtn").onclick = async () => {
+  const file = imageInput.files[0];
+  if (!file) return alert("Please select an image");
+
+  const fd = new FormData();
+  fd.append("file", file);
+
+  const res = await fetch(API_URL, { method:"POST", body:fd });
+  const data = await res.json();
+
+  annotatedImage.src = "data:image/jpeg;base64," + data.annotated_image;
+  detectionList.innerHTML = "";
+
+  const lang = langSelect.value;
+
+  data.detections.forEach(d => {
+    const conf = (d.confidence * 100).toFixed(1);
+    const info = CLASS_INFO[d.class];
+
+    const card = document.createElement("div");
+    card.className = "detection";
+    card.innerHTML = `
+      <div class="label">${d.class} — ${conf}%</div>
+      <div class="bar-container"><div class="bar" style="width:${conf}%;background:${COLORS[d.class]}"></div></div>
+      <div class="explanation">
+        The system estimates a ${conf}% probability that this lesion corresponds to ${d.class}.
+      </div>
+      <div class="description">
+        <strong>Type:</strong> ${info.type[lang]}<br>
+        <strong>Risk level:</strong> ${info.danger[lang]}<br>
+        <strong>Description:</strong> ${info.desc[lang]}<br>
+        <strong>Recommendation:</strong> ${info.advice[lang]}
+      </div>
+    `;
+    detectionList.appendChild(card);
+  });
+};
+</script>
+
+</body>
+</html>

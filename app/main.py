@@ -10,7 +10,7 @@ import io
 
 from starlette.responses import StreamingResponse, HTMLResponse
 
-from app.app_config import FRONTEND_STORAGE
+from app.app_config import FRONTEND_STORAGE, settings
 from app.model import model
 from app.utils import draw_detection
 
@@ -69,5 +69,5 @@ async def root():
 
 if __name__ == "__main__":
     uvicorn.run("main:app",
-                host="127.0.0.1",
-                port=8000)
+                host=settings.run.host,
+                port=settings.run.port)

@@ -29,7 +29,7 @@ The model identifies the following classes:
 ## 📸 API Documentation
 Once the service is running, you can access the interactive Swagger UI to test the model.
 
-![API Documentation Screenshot](./docs/Screenshot from 2026-01-10 22-02-28.png)
+![API Documentation Screenshot](./docs/Screenshot%20from%202026-01-10%2022-02-28.png)
 
 ---
 

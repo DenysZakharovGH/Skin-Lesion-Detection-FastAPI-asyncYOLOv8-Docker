@@ -25,7 +25,8 @@ RUN pip uninstall -y numpy \
 COPY app/ app/
 COPY frontend/ frontend/
 COPY models/ models/
+COPY tests/ tests/
 
 EXPOSE 8000
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "app.main:app", "--workers", "4", "--host", "0.0.0.0", "--port", "8000"]

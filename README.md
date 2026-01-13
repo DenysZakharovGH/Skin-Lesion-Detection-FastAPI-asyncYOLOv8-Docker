@@ -6,8 +6,29 @@
 
 An AI-powered microservice built with **FastAPI** and **YOLOv8** to classify pigmented skin lesions into 7 diagnostic categories using the **HAM10000 dataset**.
 
-## 🚀 Overview
-This project provides a REST API that allows users to upload images of skin lesions and receive a probabilistic diagnosis. The core engine uses a **YOLOv8 classification model** trained specifically for dermatological analysis, fully containerized with **Docker**.
+## Overview
+
+This project is a **Deep Learning API for Skin Lesion Classification**, now fully **containerized, async-ready, and optimized for concurrent requests**. It classifies pigmented skin lesions into 7 diagnostic categories, including **Melanoma**, using the **HAM10000 dataset**.
+
+**Key Updates & Achievements:**
+
+* Implemented **async inference** with `ThreadPoolExecutor` to handle multiple concurrent requests.
+* **YOLOv8 model** is preloaded once at startup for faster inference.
+* Added **rate limiting** support (e.g., 5 requests per minute) using `slowapi`.
+* API now supports **German and Ukrainian languages** in descriptions.
+* Logging has been optimized, and unnecessary Ultralytics startup prints are suppressed.
+* Fully **Dockerized** for portable deployment.
+* **Swagger UI** documentation is included for easy testing.
+
+## Tech Stack
+
+* **Model:** YOLOv8 (Ultralytics)
+* **Backend:** FastAPI
+* **Concurrency:** Async + ThreadPoolExecutor
+* **Deployment:** Docker
+* **Rate Limiting:** slowapi
+* **Languages:** English, German, Ukrainian
+
 
 ### 🧠 Model Training
 The model was trained using the **YOLOv8** (You Only Look Once) architecture by Ultralytics. While YOLO is famous for object detection, this project utilizes the **YOLOv8-cls** variant for high-accuracy image classification on medical datasets.
@@ -48,28 +69,7 @@ Once the service is running, you can access the interactive Swagger UI to test t
 * [Docker](https://www.docker.com/get-started) installed.
 * *OR* Python 3.9+ installed locally.
 
-### Running with Docker (Recommended)
-1.  **Build the image:**
-    ```bash
-    docker build -t skin-lesion-app .
-    ```
-2.  **Run the container:**
-    ```bash
-    docker run -d -p 8000:8000 skin-lesion-app
-    ```
-3.  **Access the API:** Open [http://localhost:8000/docs](http://localhost:8000/docs).
 
-### Local Development
-1.  **Install dependencies:**
-    ```bash
-    pip install -r requirements.txt
-    ```
-2.  **Run the server:**
-    ```bash
-    uvicorn app.main:app --reload
-    ```
-
----
 
 ## 🛰️ API Endpoints
 
@@ -79,29 +79,19 @@ Once the service is running, you can access the interactive Swagger UI to test t
 | `POST` | `/predict` | Upload an image and receive a diagnosis. |
 | `GET` | `/docs` | Swagger UI documentation. |
 
-### Example Request (cURL)
-```bash
-curl -X 'POST' \
-  'http://localhost:8000/predict' \
-  -H 'accept: application/json' \
-  -H 'Content-Type: multipart/form-data' \
-  -F 'file=@your_image.jpg'
-```
+## JSON Request & Response
 
-## 📁 Project Structure
+### Request
 
-```
-├── app/
-│   ├── main.py          # FastAPI application logic
-│   └── utils.py         # Image preprocessing functions
-├── models/
-│   └── skin_model.h5    # Pre-trained TensorFlow model
-├── docs/
-│   └── api_screenshot.png
-├── Dockerfile           # Docker configuration
-├── requirements.txt     # Python dependencies
-└── README.md
-```
+Endpoint: `/predict`
+Method: `POST`
+Content-Type: `multipart/form-data`
+
+| Field  | Type         | Description                       |
+| ------ | ------------ | --------------------------------- |
+| `file` | `UploadFile` | The image file of the skin lesion |
+
+Example using `curl`:
 
 ### Example Request (cURL)
 ```bash
@@ -110,3 +100,59 @@ curl -X 'POST' \
   -H 'accept: application/json' \
   -H 'Content-Type: multipart/form-data' \
   -F 'file=@your_image.jpg'
+```
+
+### Response
+
+Content-Type: `application/json`
+
+```json
+{
+  "filename": "test.jpg",
+  "detections": [
+    {"class": "NV", "confidence": 0.5934},
+    {"class": "MEL", "confidence": 0.3099}
+  ],
+  "annotated_image": "<base64-encoded-image>"
+}
+```
+
+* `filename`: original uploaded file name.
+* `detections`: list of detected lesions with class and confidence score.
+* `annotated_image`: base64-encoded JPEG image with bounding boxes drawn.
+
+## Usage
+
+1. **Clone the repository**
+
+```bash
+git clone https://github.com/DenysZakharovGH/Classification-of-pigmented-skin-lesions.git
+```
+
+2. **Build Docker image**
+
+```bash
+docker build -t skin-lesion-classifier .
+```
+
+3. **Run the container**
+
+```bash
+docker run -p 8000:8000 skin-lesion-classifier
+```
+
+4. **Test API**
+
+* Open Swagger UI at `http://localhost:8000/docs`
+* Or send POST requests to `/predict`.
+
+## Notes
+
+* The first request may take slightly longer due to model warm-up.
+* For production and high concurrency, consider multiple Uvicorn workers and/or GPU inference.
+* Rate limiting ensures fair usage and prevents overload.
+
+## GitHub
+[Project Repository](https://github.com/DenysZakharovGH/Classification-of-pigmented-skin-lesions)
+
+

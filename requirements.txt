@@ -75,6 +75,7 @@ scipy==1.15.3
 six==1.17.0
 stack-data==0.6.3
 starlette==0.50.0
+slowapi==0.1.9
 sympy==1.14.0
 tornado==6.5.4
 traitlets==5.14.3

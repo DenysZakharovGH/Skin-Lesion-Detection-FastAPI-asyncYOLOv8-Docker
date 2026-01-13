@@ -1,6 +1,6 @@
 import cv2
 
-from app.app_config import COLORS
+from app.core.app_config import COLORS
 
 
 def draw_detection(img, box, label, conf, class_name):

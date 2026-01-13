@@ -7,10 +7,12 @@ from pathlib import Path
 
 
 BASE_DIR = Path(__file__).parent.parent.parent
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DATA_STORAGE = PROJECT_ROOT / "data_storage"
 FRONTEND_STORAGE = PROJECT_ROOT / "frontend"
 MODELS_PATH = PROJECT_ROOT / "models"
+LOGS_PATH = PROJECT_ROOT / "logs"
+
 COLORS = {
     "AKIEC": (255, 0, 0),
     "BCC": (0, 255, 0),
@@ -25,9 +27,10 @@ class RunConfig(BaseModel):
     host: str = "127.0.0.1"
     #host: str = "192.168.2.87"
     port: int = 8000
+    rate_limits: str = "25/minute"
 
 class CNNConfig(BaseModel):
-    rate_limits: str = "5/minute"
+    rate_limits: str = "500/minute"
     max_token_limits: int = 400
     user_input_limits: int = 100
     model_path: str = None

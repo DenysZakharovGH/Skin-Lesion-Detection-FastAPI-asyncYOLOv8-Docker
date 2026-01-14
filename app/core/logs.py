@@ -3,9 +3,7 @@ import os
 
 from app.core.app_config import LOGS_PATH
 
-
-if not os.path.exists(LOGS_PATH):
-    os.makedirs(LOGS_PATH)
+os.makedirs(LOGS_PATH, exist_ok=True)
 
 logging.basicConfig(
     level=logging.INFO,

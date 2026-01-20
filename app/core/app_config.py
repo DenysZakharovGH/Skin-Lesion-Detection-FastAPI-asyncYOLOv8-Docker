@@ -26,7 +26,7 @@ COLORS = {
 
 class RunConfig(BaseModel):
     host: str = "127.0.0.1"
-    #host: str = "192.168.2.87"
+    host: str = "192.168.2.40"
     port: int = 8000
     rate_limits: str = "25/minute"
 
@@ -36,7 +36,7 @@ class CNNConfig(BaseModel):
     user_input_limits: int = 100
     model_path_yolo: str = None
     model_path_resnet: str = None
-    max_image_h_w: int = 2500
+    max_image_h_w: int = 4500
 
     def __init__(self, **data):
         super().__init__(**data)

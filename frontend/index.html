@@ -57,7 +57,9 @@ button {
   cursor: pointer;
 }
 
-button:hover { background: #1d4ed8; }
+button:hover {
+  background: #1d4ed8;
+}
 
 #annotatedImage {
   width: 100%;
@@ -68,10 +70,6 @@ button:hover { background: #1d4ed8; }
 
 #detections {
   margin-top: 24px;
-}
-
-#detections h3 {
-  margin-bottom: 12px;
 }
 
 .detection {
@@ -87,7 +85,6 @@ button:hover { background: #1d4ed8; }
 
 .label {
   font-weight: 600;
-  font-size: 1rem;
 }
 
 .bar-container {
@@ -103,13 +100,10 @@ button:hover { background: #1d4ed8; }
 
 .explanation {
   font-size: 0.9rem;
-  line-height: 1.4;
-  color: #333;
 }
 
 .description {
   font-size: 0.88rem;
-  line-height: 1.45;
   color: #555;
 }
 
@@ -143,18 +137,17 @@ button:hover { background: #1d4ed8; }
   <img id="annotatedImage" src="" alt="">
 
   <div id="detections">
-    <h3>Detections</h3>
     <div id="detectionList"></div>
   </div>
 
   <div class="disclaimer">
-    ⚠️ This system is for research and educational purposes only and does not replace professional medical diagnosis.
+    ⚠️ For research and educational purposes only. Not a medical diagnosis.
   </div>
 
 </div>
 
 <script>
-const API_URL = "http://192.168.2.40:8000/predict";
+const API_URL = "http://127.0.0.1:8000/predict";
 
 const COLORS = {
   MEL:"#dc2626", BCC:"#f97316", AKIEC:"#f59e0b",
@@ -184,9 +177,18 @@ document.getElementById("predictBtn").onclick = async () => {
   annotatedImage.src = "data:image/jpeg;base64," + data.annotated_image;
   detectionList.innerHTML = "";
 
+  if (!data.detections || data.detections.length === 0) {
+    detectionList.innerHTML = "<p>No lesions detected.</p>";
+    return;
+  }
+
   const lang = langSelect.value;
+  const seen = new Set();
 
   data.detections.forEach(d => {
+    if (!CLASS_INFO[d.class] || seen.has(d.class)) return;
+    seen.add(d.class);
+
     const conf = (d.confidence * 100).toFixed(1);
     const info = CLASS_INFO[d.class];
 
@@ -194,13 +196,15 @@ document.getElementById("predictBtn").onclick = async () => {
     card.className = "detection";
     card.innerHTML = `
       <div class="label">${d.class} — ${conf}%</div>
-      <div class="bar-container"><div class="bar" style="width:${conf}%;background:${COLORS[d.class]}"></div></div>
+      <div class="bar-container">
+        <div class="bar" style="width:${conf}%;background:${COLORS[d.class]}"></div>
+      </div>
       <div class="explanation">
-        The system estimates a ${conf}% probability that this lesion corresponds to ${d.class}.
+        Estimated probability: ${conf}%
       </div>
       <div class="description">
         <strong>Type:</strong> ${info.type[lang]}<br>
-        <strong>Risk level:</strong> ${info.danger[lang]}<br>
+        <strong>Risk:</strong> ${info.danger[lang]}<br>
         <strong>Description:</strong> ${info.desc[lang]}<br>
         <strong>Recommendation:</strong> ${info.advice[lang]}
       </div>

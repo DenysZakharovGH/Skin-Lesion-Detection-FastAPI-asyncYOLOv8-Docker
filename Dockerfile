@@ -26,6 +26,7 @@ COPY app/ app/
 COPY frontend/ frontend/
 COPY models/ models/
 COPY tests/ tests/
+COPY lesion_description/ lesion_description/
 
 EXPOSE 8000
 

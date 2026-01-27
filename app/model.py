@@ -34,7 +34,7 @@ async def predict_async(image):
 
 def model_inference_sync(img):
     # synchronous YOLO inference
-    return model.predict(img, conf=0.05, verbose=False)
+    return model.predict(img, conf=settings.cnn.conf,  iou=settings.cnn.iou, verbose=False)
 
 # ---------- Async helper for ResNet ----------
 async def classify_crop_async(crop_img: Image.Image):

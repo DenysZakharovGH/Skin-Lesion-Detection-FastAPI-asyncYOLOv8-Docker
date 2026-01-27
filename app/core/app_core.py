@@ -10,7 +10,7 @@ import io
 
 from starlette.responses import HTMLResponse
 
-from app.core.app_config import settings, FRONTEND_STORAGE
+from app.core.app_config import settings, FRONTEND_STORAGE, FrontendConfig
 from app.model import model, predict_async, classify_crop_async
 from app.utils import draw_detection
 from slowapi import Limiter
@@ -19,6 +19,8 @@ from slowapi.util import get_remote_address
 
 cnn_route = APIRouter()
 limiter = Limiter(key_func=get_remote_address)
+description = FrontendConfig()
+
 
 @cnn_route.post("/predict")
 @limiter.limit(settings.cnn.rate_limits)
@@ -38,7 +40,7 @@ async def predict_image(request: Request, file: UploadFile = File(...)):
 
     # Prepare async classification tasks for each detected object
     tasks = []
-    for bbox in  results[0].boxes.xyxy:  # xyxy = [x1, y1, x2, y2]
+    for bbox in results[0].boxes.xyxy:  # xyxy = [x1, y1, x2, y2]
         x1, y1, x2, y2 = bbox.cpu().numpy()
         crop = image.crop((x1, y1, x2, y2))
         tasks.append(classify_crop_async(crop))
@@ -59,6 +61,7 @@ async def predict_image(request: Request, file: UploadFile = File(...)):
             YOLO_ResNet_results.append({
                 "class": f"{pred_class}",
                 "confidence": float(prob),
+                "description": description.add_description(pred_class)
             })
 
     _, buffer = cv2.imencode(".jpg", processed_img)

@@ -27,7 +27,7 @@ COLORS = {
 }
 
 
-class  FrontendConfig():
+class FrontendConfig():
 
     lesion_desc_dict = {}
     def __init__(self, **data):

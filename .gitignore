@@ -1,0 +1,33 @@
+# Model checkpoints
+*.ckpt
+
+*.pt
+*.pth
+*.h5
+*.onnx
+
+# Data
+data/
+datasets/
+*.zip
+*.tar.gz
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+.train/f_RCNN_RESNET/__pycache__/
+
+# IDE
+.idea/
+.vscode/
+
+.env
+.git
+.ipynb_checkpoints
+
+# PyTorch / Lightning checkpoints
+checkpoints/
+train/**/checkpoints/

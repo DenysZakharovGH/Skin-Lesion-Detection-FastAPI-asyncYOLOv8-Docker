@@ -2,7 +2,7 @@ name: FASTAPI AI Pipeline
 
 on:
   push:
-    branches: [ main ]
+    branches: [ dev_appl_to_prod ]
 
 jobs:
   train:

@@ -11,7 +11,7 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
-    
+
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
@@ -36,8 +36,10 @@ jobs:
             --extra-index-url https://download.pytorch.org/whl/cu117 \
          && pip install --no-cache-dir -r requirements.txt
 
-    - name: Install pytest
-      run: pip install pytest
+    - name: Install pytest+numpy
+      run: pip install pytest\
+        && pip uninstall -y numpy\
+        && pip install --no-cache-dir numpy==1.26.4
 
     - name: Run tests
       run: |
